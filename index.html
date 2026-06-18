@@ -1,162 +1,137 @@
-<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Linear Graph Evidence</title>
-
-  <style>
-    body{
-      margin:0;
-      font-family:Arial;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      min-height:100vh;
-      background:#f5f5f5;
-    }
-    .box{
-      text-align:center;
-    }
-    canvas{
-      border:1px solid #ccc;
-      margin-top:10px;
-    }
-    table{
-      margin:auto;
-      margin-top:10px;
-      border-collapse:collapse;
-    }
-    td,th{
-      border:1px solid black;
-      padding:4px;
-      min-width:40px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Linear Graph Evidence</title>
+<style>
+body{
+margin:0;
+font-family:Arial;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+background:#f5f5f5;
+}
+.box{
+text-align:center;
+}
+canvas{
+border:1px solid #ccc;
+margin-top:10px;
+}
+table{
+margin:auto;
+margin-top:10px;
+border-collapse:collapse;
+}
+td,th{
+border:1px solid black;
+padding:4px;
+min-width:40px;
+}
+</style>
 </head>
-
 <body>
-  <div class="box">
-    <h2>Linear Graph Evidence</h2>
+<div class="box">
+<h2>Linear Graph Evidence</h2>
+x1 <input id="x1" value="-4">
+y1 <input id="y1" value="2">
+x2 <input id="x2" value="6">
+y2 <input id="y2" value="10">
+<br><br>
+<button onclick="go()">calculate</button>
+<div id="out"></div>
+<table id="table"></table>
+<canvas id="c" width="600" height="600"></canvas>
+</div>
+<script>
+let canvas=document.getElementById("c");
+let ctx=canvas.getContext("2d");
 
-    x1 <input id="x1" value="-4">
-    y1 <input id="y1" value="2">
-    x2 <input id="x2" value="6">
-    y2 <input id="y2" value="10">
+function scaleX(x){return 300+x*20;}
+function scaleY(y){return 300-y*20;}
 
-    <br><br>
-    <button onclick="go()">calculate</button>
+function drawAxes(){
+ctx.beginPath();
+ctx.moveTo(0,300);
+ctx.lineTo(600,300);
+ctx.moveTo(300,0);
+ctx.lineTo(300,600);
+ctx.stroke();
+}
 
-    <div id="out"></div>
-    <table id="table"></table>
-    <canvas id="c" width="600" height="600"></canvas>
-  </div>
+function dot(x,y,label){
+ctx.beginPath();
+ctx.arc(scaleX(x),scaleY(y),5,0,Math.PI*2);
+ctx.fill();
+ctx.fillText(label,scaleX(x)+6,scaleY(y)-6);
+}
 
-  <script>
-    let canvas = document.getElementById("c");
-    let ctx = canvas.getContext("2d");
+function drawTriangle(ax,ay,bx,by){
+ctx.beginPath();
+ctx.moveTo(scaleX(ax),scaleY(ay));
+ctx.lineTo(scaleX(bx),scaleY(ay));
+ctx.lineTo(scaleX(bx),scaleY(by));
+ctx.lineTo(scaleX(ax),scaleY(ay));
+ctx.stroke();
+}
 
-    function scaleX(x){
-      return 300 + x * 20;
-    }
+function drawLine(m,c){
+ctx.beginPath();
+let first=true;
+for(let x=-15;x<=15;x+=0.1){
+let y=m*x+c;
+if(first){
+ctx.moveTo(scaleX(x),scaleY(y));
+first=false;
+}else{
+ctx.lineTo(scaleX(x),scaleY(y));
+}
+}
+ctx.strokeStyle="blue";
+ctx.stroke();
+ctx.strokeStyle="black";
+}
 
-    function scaleY(y){
-      return 300 - y * 20;
-    }
-
-    function drawAxes(){
-      ctx.beginPath();
-      ctx.moveTo(0,300);
-      ctx.lineTo(600,300);
-      ctx.moveTo(300,0);
-      ctx.lineTo(300,600);
-      ctx.stroke();
-    }
-
-    function drawLine(m,c){
-      ctx.beginPath();
-      let first = true;
-
-      for(let x=-15;x<=15;x+=0.1){
-        let y = m*x + c;
-
-        if(first){
-          ctx.moveTo(scaleX(x),scaleY(y));
-          first = false;
-        } else {
-          ctx.lineTo(scaleX(x),scaleY(y));
-        }
-      }
-
-      ctx.strokeStyle="blue";
-      ctx.stroke();
-    }
-
-    function dot(x,y,label){
-      ctx.beginPath();
-      ctx.arc(scaleX(x),scaleY(y),5,0,Math.PI*2);
-      ctx.fill();
-      ctx.fillText(label,scaleX(x)+6,scaleY(y)-6);
-    }
-
-    function go(){
-      ctx.clearRect(0,0,600,600);
-
-      let x1 = +document.getElementById("x1").value;
-      let y1 = +document.getElementById("y1").value;
-      let x2 = +document.getElementById("x2").value;
-      let y2 = +document.getElementById("y2").value;
-
-      let out = document.getElementById("out");
-      let table = document.getElementById("table");
-
-      drawAxes();
-
-      if(x1 == x2){
-        ctx.beginPath();
-        ctx.moveTo(scaleX(x1),0);
-        ctx.lineTo(scaleX(x1),600);
-        ctx.strokeStyle="red";
-        ctx.stroke();
-
-        out.innerHTML = "x = " + x1;
-        table.innerHTML =
-          "<tr><th>vertical line</th></tr>" +
-          "<tr><th>x = "+x1+"</th></tr>";
-
-        dot(x1,y1,"A");
-        dot(x2,y2,"B");
-        return;
-      }
-
-      let m = (y2-y1)/(x2-x1);
-      let midX = (x1+x2)/2;
-      let midY = (y1+y2)/2;
-      let d = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
-      let c = y1 - m*x1;
-
-      out.innerHTML =
-        "m = " + m.toFixed(2) + "<br>" +
-        "M = (" + midX.toFixed(2) + "," + midY.toFixed(2) + ")<br>" +
-        "d = " + d.toFixed(2) + "<br>" +
-        "y = " + m.toFixed(2) + "x + " + c.toFixed(2);
-
-      drawLine(m,c);
-
-      dot(x1,y1,"A");
-      dot(x2,y2,"B");
-      dot(midX,midY,"M");
-
-      table.innerHTML =
-        "<tr><th>x</th></tr>" +
-        "<tr><th>y</th></tr>";
-
-      for(let x=-5;x<=5;x++){
-        table.rows[0].innerHTML += "<td>"+x+"</td>";
-        table.rows[1].innerHTML += "<td>"+(m*x+c).toFixed(2)+"</td>";
-      }
-    }
-
-    go();
-  </script>
+function go(){
+ctx.clearRect(0,0,600,600);
+let x1=+document.getElementById("x1").value;
+let y1=+document.getElementById("y1").value;
+let x2=+document.getElementById("x2").value;
+let y2=+document.getElementById("y2").value;
+let out=document.getElementById("out");
+let table=document.getElementById("table");
+drawAxes();
+if(x1==x2){
+ctx.beginPath();
+ctx.moveTo(scaleX(x1),0);
+ctx.lineTo(scaleX(x1),600);
+ctx.stroke();
+out.innerHTML="x="+x1;
+return;
+}
+let m=(y2-y1)/(x2-x1);
+let c=y1-m*x1;
+let midX=(x1+x2)/2;
+let midY=(y1+y2)/2;
+let d=Math.sqrt((x2-x1)**2+(y2-y1)**2);
+out.innerHTML="y="+m.toFixed(2)+"x+"+c.toFixed(2)+"<br>m="+m.toFixed(2)+"<br>d="+d.toFixed(2)+"<br>M("+midX.toFixed(2)+","+midY.toFixed(2)+")";
+drawLine(m,c);
+ctx.strokeStyle="red";
+drawTriangle(x1,y1,x2,y2);
+ctx.strokeStyle="green";
+drawTriangle(x1,y1,x2,y1);
+ctx.strokeStyle="black";
+dot(x1,y1,"A");
+dot(x2,y2,"B");
+dot(midX,midY,"M");
+table.innerHTML="<tr></tr><tr></tr>";
+for(let x=-5;x<=5;x++){
+table.rows[0].innerHTML+="<td>"+x+"</td>";
+table.rows[1].innerHTML+="<td>"+(m*x+c).toFixed(2)+"</td>";
+}
+}
+go();
+</script>
 </body>
 </html>
